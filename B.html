@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تقویم ۳۰ روزه VisionOS Glass</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+    --bg-light: radial-gradient(circle at top, #ffffff 0, #eef1f7 40%, #dfe3ee 100%);
+    --bg-dark: radial-gradient(circle at top, #1b1f33 0, #1a1d2e 40%, #141726 100%);
+
+    --text-light: #0f172a;
+    --text-dark: #eef2ff;
+
+    --panel-light: rgba(255,255,255,0.72);
+    --panel-dark: rgba(255,255,255,0.12);
+
+    --panel-border-light: rgba(255,255,255,0.9);
+    --panel-border-dark: rgba(255,255,255,0.25);
+
+    --green: #91C200;      /* سبز دقیق */
+    --purple: #9b5bff;     /* بنفش جدید */
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: -apple-system, "SF Pro Text", sans-serif;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: var(--bg-light);
+    color: var(--text-light);
+    transition: background 0.5s ease, color 0.4s ease;
+    padding-top: 40px;
+}
+
+body.dark {
+    background: var(--bg-dark);
+    color: var(--text-dark);
+}
+
+/* عنوان شیشه‌ای */
+.page-title {
+    font-size: 22px;
+    font-weight: 700;
+    padding: 14px 22px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.8);
+    backdrop-filter: blur(22px) saturate(180%);
+    -webkit-backdrop-filter: blur(22px) saturate(180%);
+    margin-bottom: 22px;
+    text-align: center;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+body.dark .page-title {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: 0 22px 60px rgba(0,0,0,0.55);
+}
+
+/* کانتینر اصلی */
+.wrapper {
+    width: min(780px, 100%);
+    padding: 0 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* دکمه تم */
+.theme-toggle {
+    align-self: flex-end;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.9);
+    border: 1px solid rgba(209,213,219,0.9);
+    backdrop-filter: blur(18px) saturate(160%);
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s ease;
+}
+body.dark .theme-toggle {
+    background: rgba(30,41,59,0.9);
+    border-color: rgba(148,163,184,0.9);
+}
+.theme-toggle:hover {
+    transform: translateY(-1px);
+}
+
+/* پنل شیشه‌ای تقویم */
+.calendar-panel {
+    border-radius: 28px;
+    padding: 24px 24px 26px;
+    background: var(--panel-light);
+    border: 1px solid var(--panel-border-light);
+    backdrop-filter: blur(28px) saturate(180%);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    box-shadow: 0 26px 70px rgba(15,23,42,0.18);
+    transition: 0.5s ease;
+}
+body.dark .calendar-panel {
+    background: var(--panel-dark);
+    border-color: var(--panel-border-dark);
+    box-shadow: 0 32px 90px rgba(0,0,0,0.85);
+}
+
+/* هدر کوچک */
+.panel-header {
+    font-size: 13px;
+    opacity: 0.7;
+    margin-bottom: 14px;
+}
+
+/* شبکه روزها */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+
+/* روزها */
+.day {
+    height: 60px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.82);
+    border: 1px solid rgba(226,232,240,0.95);
+    backdrop-filter: blur(18px) saturate(170%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 12px 28px rgba(15,23,42,0.12);
+    transition: 0.22s ease;
+}
+body.dark .day {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.85);
+}
+.day:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(15,23,42,0.22);
+}
+
+/* رنگ‌های دستی */
+.day.green {
+    background: var(--green) !important;
+    border-color: #6f9200 !important;
+    color: #ffffff !important;
+}
+.day.purple,
+.day.blue {
+    background: var(--purple) !important;
+    border-color: #7a3fe0 !important;
+    color: #ffffff !important;
+}
+
+/* لایه تاریک پس‌زمینه یادداشت */
+.note-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(12px);
+}
+
+/* جعبه شیشه‌ای یادداشت */
+.note-box {
+    width: min(420px, 90%);
+    padding: 22px 22px 20px;
+    border-radius: 24px;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.95);
+    backdrop-filter: blur(26px) saturate(180%);
+    -webkit-backdrop-filter: blur(26px) saturate(180%);
+    box-shadow: 0 26px 70px rgba(15,23,42,0.35);
+    transform: translateY(10px) scale(0.96);
+    opacity: 0;
+    transition: 0.28s ease;
+}
+body.dark .note-box {
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(255,255,255,0.25);
+    box-shadow: 0 32px 90px rgba(0,0,0,0.9);
+    color: var(--text-dark);
+}
+.note-modal.show .note-box {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+
+.note-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.note-text {
+    font-size: 14px;
+    line-height: 1.8;
+    opacity: 0.9;
+}
+.close-btn {
+    margin-top: 18px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(209,213,219,0.9);
+    background: rgba(255,255,255,0.9);
+    cursor: pointer;
+    font-size: 13px;
+    transition: 0.2s ease;
+}
+body.dark .close-btn {
+    background: rgba(30,41,59,0.95);
+    border-color: rgba(148,163,184,0.9);
+    color: var(--text-dark);
+}
+.close-btn:hover {
+    transform: translateY(-1px);
+}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+    <!-- عنوان شیشه‌ای -->
+    <div class="page-title">وضعیت MR369BJ</div>
+    <!-- دکمه تم -->
+    <div class="theme-toggle" id="themeToggle">
+        <span>🌗</span>
+        <span>تغییر تم</span>
+    </div>
+
+    <!-- پنل شیشه‌ای تقویم -->
+    <section class="calendar-panel">
+        <div class="panel-header">رنگ و یادداشت‌ها فقط از داخل کد قابل تنظیم هستند</div>
+
+        <div class="grid">
+            <!-- ۳۰ روز – رنگ‌ها را دستی تعیین کن -->
+            <div class="day green">1</div>
+            <div class="day green">2</div>
+            <div class="day">3</div>
+            <div class="day ">4</div>
+            <div class="day">5</div>
+            <div class="day">6</div>
+
+            <div class="day">7</div>
+            <div class="day ">8</div>
+            <div class="day">9</div>
+            <div class="day ">10</div>
+            <div class="day">11</div>
+            <div class="day">12</div>
+
+            <div class="day ">13</div>
+            <div class="day ">14</div>
+            <div class="day">15</div>
+            <div class="day">16</div>
+            <div class="day ">17</div>
+            <div class="day">18</div>
+
+            <div class="day ">19</div>
+            <div class="day">20</div>
+            <div class="day ">21</div>
+            <div class="day">22</div>
+            <div class="day ">23</div>
+            <div class="day">24</div>
+
+            <div class="day ">25</div>
+            <div class="day">26</div>
+            <div class="day ">27</div>
+            <div class="day">28</div>
+            <div class="day ">29</div>
+            <div class="day">30</div>
+        </div>
+    </section>
+</div>
+
+<!-- پنجره شیشه‌ای یادداشت -->
+<div class="note-modal" id="noteModal">
+    <div class="note-box">
+        <div class="note-title" id="noteTitle"></div>
+        <div class="note-text" id="noteText"></div>
+        <button class="close-btn" id="closeNote">بستن</button>
+    </div>
+</div>
+
+<script>
+// یادداشت‌ها – فقط اینجا رو ویرایش کن
+const notes = {
+    1:"یادداشت روز اول: اطلاعات ورودی آپدیت شدند و مخاطب تمرین کرد",
+    2: "یادداشت روز دوم: مخاطب تمرین کرد و امتحان داد",
+
+};
+
+const modal = document.getElementById("noteModal");
+const noteTitle = document.getElementById("noteTitle");
+const noteText = document.getElementById("noteText");
+
+// کلیک روی روزها برای نمایش یادداشت
+document.querySelectorAll(".day").forEach(day => {
+    day.addEventListener("click", () => {
+        const num = day.textContent.trim();
+        if (notes[num]) {
+            noteTitle.textContent = "یادداشت روز " + num;
+            noteText.textContent = notes[num];
+            modal.style.display = "flex";
+            requestAnimationFrame(() => modal.classList.add("show"));
+        }
+    });
+});
+
+// بستن یادداشت
+document.getElementById("closeNote").onclick = () => {
+    modal.classList.remove("show");
+    setTimeout(() => { modal.style.display = "none"; }, 200);
+};
+
+// تغییر تم
+document.getElementById("themeToggle").onclick = () => {
+    document.body.classList.toggle("dark");
+};
+</script>
+
+</body>
+</html>
